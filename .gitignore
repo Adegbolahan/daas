@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+# generated from platform/terraform.yaml by terraform/daas_tf.py
+terraform/live/_config.tf.json
+.terraform/
+*.tfplan
+
+node_modules/
+.claude/settings.local.json
+_to_delete/
+.DS_Store

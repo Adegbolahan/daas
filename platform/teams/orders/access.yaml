@@ -1,0 +1,14 @@
+# Access for team "orders": who can deploy, where, and under which gates. Settings for all the team's
+# apps; each app's own workload lives in its repo's daas.yaml. Changes need approval from `owners`
+# and the platform team (CODEOWNERS).
+# README.md next to this file is generated: everything this folder gives the team.
+namespace: orders
+group: team-orders
+owners: ["@acme/orders-leads"]
+projects: ["acme/orders/*"]
+stages:
+  preview: {}
+  qa: {}
+  staging: {}
+  production: { protectedRefOnly: true, requireProtectedEnvironment: true }
+preview: { maxConcurrent: 3, quota: { cpu: "2", memory: 4Gi } }

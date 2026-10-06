@@ -1,0 +1,25 @@
+# Access for team "payments": who can deploy, where, and under which gates. Settings for all the team's
+# apps; each app's own workload lives in its repo's daas.yaml. Changes need approval from `owners`
+# and the platform team (CODEOWNERS).
+# README.md next to this file is generated: everything this folder gives the team.
+namespace: payments
+group: team-payments                   # IdP group: read-only kubectl on the team's namespaces
+owners: ["@acme/payments-leads"]       # approve changes to this folder
+projects: ["acme/payments/*"]          # GitLab projects allowed to deploy as this team
+
+# Stages the team deploys to (from platform/stages.yaml), with extra gates:
+#   protectedRefOnly:            job must run on a protected branch/tag
+#   requireProtectedEnvironment: the GitLab environment must be protected (approvals, deployers)
+stages:
+  preview: {}
+  qa: {}
+  uat: {}
+  perf: {}
+  staging: {}
+  production: { protectedRefOnly: true, requireProtectedEnvironment: true }
+
+preview: { maxConcurrent: 5, quota: { cpu: "4", memory: 8Gi } }
+
+domains: ["*.payments.example.com", "pay.example.com"]   # hosts apps may claim with ingress.hosts
+podSecurity: restricted                # Pod Security Standard (restricted | baseline); platform-reviewed
+notify: { webhookEnv: DAAS_NOTIFY_PAYMENTS }   # env var on DAAS holding the team's chat webhook URL

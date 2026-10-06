@@ -1,0 +1,1 @@
+- { name: web-eks-use1-stage, stage: staging, provider: eks, region: us-east-1, oidcIssuer: "https://oidc.eks.us-east-1.amazonaws.com/id/WEBUSE1STG" }

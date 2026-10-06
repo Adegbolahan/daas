@@ -1,0 +1,15 @@
+# The DAAS service itself. Platform-owned.
+platformOwners: ["@acme/platform"]   # approve every change under platform/ (CODEOWNERS)
+gitopsRepo: https://gitlab.example.com/platform/daas-gitops.git
+identities:                          # what the DAAS API runs as; gets write access to secrets in every stage
+  gcpMember: serviceAccount:daas-api@acme-platform.iam.gserviceaccount.com
+  awsPrincipalArn: arn:aws:iam::999999999999:role/daas-api
+
+# Container registry the apps pull from (private). Each team namespace gets an imagePullSecret
+# (conventions.registryPullSecret) synced from the team secret <team>_daas_REGISTRY_AUTH: a Docker
+# config JSON, e.g. from a GitLab group deploy token with read_registry. Set it per stage with:
+#   daas-secret set <stage> <team> daas REGISTRY_AUTH < dockerconfig.json
+# Deploys are refused until it's set. Remove this block if your registry is public.
+registry:
+  server: registry.gitlab.example.com
+  provider: gcp                        # where REGISTRY_AUTH is stored (default: the team's provider)

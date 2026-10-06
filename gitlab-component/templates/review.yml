@@ -1,0 +1,90 @@
+# Preview ("review app") per merge request. Deploys to review/mr-<iid>, publishes the URL on the MR,
+# and removes it when the MR is merged/closed (stop job) or after auto_stop_in.
+spec:
+  inputs:
+    api_url:
+      description: Base URL of the DAAS API (also used as the OIDC audience)
+    daas_file:
+      default: daas.yaml
+    image:
+      default: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    stage:
+      default: deploy
+    auto_stop_in:
+      default: 3 days
+    timeout_seconds:
+      type: number
+      default: 900
+---
+.daas-review-base:
+  image: alpine:3.20
+  id_tokens:
+    DAAS_ID_TOKEN:
+      aud: $[[ inputs.api_url ]]
+  variables:
+    DAAS_API: $[[ inputs.api_url ]]
+    DAAS_ENV: review/mr-$CI_MERGE_REQUEST_IID
+  # deploy and stop for the same MR never run at the same time
+  resource_group: daas-review-mr-$CI_MERGE_REQUEST_IID
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+daas-review:
+  extends: .daas-review-base
+  stage: $[[ inputs.stage ]]
+  environment:
+    name: review/mr-$CI_MERGE_REQUEST_IID
+    deployment_tier: development        # the preview stage's gitlabTier (platform/stages.yaml)
+    url: $DAAS_URL                      # set from dotenv below
+    on_stop: daas-review-stop
+    auto_stop_in: $[[ inputs.auto_stop_in ]]
+  artifacts:
+    reports:
+      dotenv: deploy.env
+  script:
+    - apk add --no-cache curl jq >/dev/null
+    - |
+      set -eu
+      jq -n --rawfile spec "$[[ inputs.daas_file ]]" --arg image "$[[ inputs.image ]]" --arg env "$DAAS_ENV" \
+        '{spec: $spec, image: $image, environment: $env}' > payload.json
+      auth="Authorization: Bearer $DAAS_ID_TOKEN"
+      resp=$(curl -sS --fail-with-body -X POST "$DAAS_API/v1/deployments" \
+        -H "$auth" -H "Content-Type: application/json" --data @payload.json) \
+        || { echo "DAAS rejected the request:"; echo "$resp" | jq . 2>/dev/null || echo "$resp"; exit 1; }
+      id=$(echo "$resp" | jq -r .id)
+      echo "DAAS_URL=$(echo "$resp" | jq -r '.url // empty')" > deploy.env
+      echo "Preview $id → $(echo "$resp" | jq -r '.url // "no URL (preview cluster has no domain)"')"
+
+      deadline=$(( $(date +%s) + $[[ inputs.timeout_seconds ]] ))
+      while [ "$(date +%s)" -lt "$deadline" ]; do
+        status=$(curl -sS --fail -H "$auth" "$DAAS_API/v1/deployments/$id" | jq -r .status)
+        case "$status" in
+          succeeded) echo "Preview is live."; exit 0 ;;
+          failed) curl -sS -H "$auth" "$DAAS_API/v1/deployments/$id" | jq .; exit 1 ;;
+        esac
+        sleep 10
+      done
+      echo "Timed out waiting for preview $id"; exit 1
+
+daas-review-stop:
+  extends: .daas-review-base
+  stage: $[[ inputs.stage ]]
+  environment:
+    name: review/mr-$CI_MERGE_REQUEST_IID
+    deployment_tier: development
+    action: stop
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+  allow_failure: true
+  variables:
+    GIT_STRATEGY: none                  # branch may already be deleted
+  script:
+    - apk add --no-cache curl >/dev/null
+    - |
+      set -eu
+      # Removes everything this project deployed to the review environment.
+      code=$(curl -sS -o resp.json -w '%{http_code}' -X DELETE \
+        -H "Authorization: Bearer $DAAS_ID_TOKEN" "$DAAS_API/v1/environments/$DAAS_ENV")
+      cat resp.json; echo
+      case "$code" in 200|404) exit 0 ;; *) exit 1 ;; esac

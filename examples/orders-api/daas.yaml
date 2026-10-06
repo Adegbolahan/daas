@@ -1,0 +1,16 @@
+# Everything DAAS needs to run orders-api. Validated against spec/daas.schema.json in CI.
+apiVersion: daas/v1
+name: orders-api
+port: 8080
+env:
+  APP_ENV: default
+resources: { cpu: 250m, memory: 256Mi }
+health: { liveness: /healthz, readiness: /ready }
+scaling: { min: 2, max: 6, targetCPU: 70 }
+secrets:
+  - DATABASE_URL                            # team default provider (aws for orders)
+  - { name: PAYMENTS_API_KEY, from: gcp }   # this one lives in GCP
+targets:                                    # production regions; first = canary
+  - { provider: eks, region: us-east-1 }
+  - { provider: gke, region: us-central1 }
+rollout: { strategy: sequential }

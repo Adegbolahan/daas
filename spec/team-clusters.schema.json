@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://daas.example.com/schemas/team-clusters.v1.json",
+  "title": "clusters.yaml: a team's dedicated clusters",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["name", "stage", "provider", "region"],
+    "properties": {
+      "name": { "type": "string", "pattern": "^[a-z]([-a-z0-9]{0,38}[a-z0-9])?$", "description": "Must start with <team>- and match the Argo CD and cloud cluster names" },
+      "stage": { "type": "string" },
+      "provider": { "enum": ["gke", "eks"] },
+      "region": { "type": "string", "pattern": "^[a-z]+-[a-z]+-?[0-9]+$" },
+      "gcpProject": { "type": "string", "description": "GKE: the project the cluster runs in" },
+      "oidcIssuer": { "type": "string", "pattern": "^https://", "description": "EKS: the cluster's OIDC issuer URL" },
+      "previewDomain": { "type": "string", "description": "Preview stage: each preview gets <name>.<previewDomain>" },
+      "domain": { "type": "string", "description": "Default public host <app>.<domain> for apps with ingress" },
+      "gateway": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "namespace"],
+        "properties": { "name": { "type": "string" }, "namespace": { "type": "string" } }
+      },
+      "features": { "type": "array", "items": { "enum": ["prometheus-operator"] }, "uniqueItems": true },
+      "ingressAllow": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "namespaces": { "type": "array", "items": { "type": "string" } },
+          "cidrs": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "monitoringLabels": { "type": "object", "additionalProperties": { "type": "string" } }
+    },
+    "allOf": [
+      { "if": { "properties": { "provider": { "const": "gke" } } }, "then": { "required": ["gcpProject"] } },
+      { "if": { "properties": { "provider": { "const": "eks" } } }, "then": { "required": ["oidcIssuer"] } }
+    ]
+  }
+}

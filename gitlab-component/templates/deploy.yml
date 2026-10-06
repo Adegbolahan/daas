@@ -1,0 +1,115 @@
+spec:
+  inputs:
+    environment:
+      description: GitLab environment name (e.g. production, production-eu, qa-2). Routed to a stage by platform/stages.yaml
+    tier:
+      description: GitLab deployment tier. Must equal the gitlabTier of the stage this environment routes to (platform/stages.yaml).
+      options: [production, staging, testing, development, other]
+    api_url:
+      description: Base URL of the DAAS API (also used as the OIDC audience)
+    daas_file:
+      default: daas.yaml
+    image:
+      default: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    environment_url:
+      description: Optional link shown on the GitLab environment and MR (e.g. https://payments.example.com)
+      default: ""
+    stage:
+      default: deploy
+    dry_run:
+      type: boolean
+      default: false
+    timeout_seconds:
+      type: number
+      default: 1800
+    job_suffix:
+      default: ""
+    environment_action:
+      description: GitLab environment action. Use 'prepare' for dry runs so no GitLab deployment is recorded.
+      options: [start, prepare]
+      default: start
+    respect_deploy_freeze:
+      description: Fail production-tier deploys while a GitLab deploy freeze is active ($CI_DEPLOY_FREEZE)
+      type: boolean
+      default: true
+---
+"daas-$[[ inputs.environment ]]$[[ inputs.job_suffix ]]":
+  stage: $[[ inputs.stage ]]
+  image: alpine:3.20
+  # DAAS checks the token's `environment` and `deployment_tier` claims. For protected environments,
+  # GitLab enforces approvals and allowed deployers before this job can start.
+  environment:
+    name: $[[ inputs.environment ]]
+    deployment_tier: $[[ inputs.tier ]]
+    action: $[[ inputs.environment_action ]]
+    url: $DAAS_URL                        # from the dotenv report below; empty = no link
+  # One deploy per environment at a time. Set the group's process_mode to newest_first
+  # (see README) so a queued older pipeline never overwrites a newer one.
+  resource_group: daas-$[[ inputs.environment ]]
+  id_tokens:
+    DAAS_ID_TOKEN:
+      aud: $[[ inputs.api_url ]]
+  variables:
+    DAAS_API: $[[ inputs.api_url ]]
+    DAAS_ENV: $[[ inputs.environment ]]
+    DAAS_TIER: $[[ inputs.tier ]]
+    DAAS_IMAGE: $[[ inputs.image ]]
+    DAAS_DRY_RUN: "$[[ inputs.dry_run ]]"
+    DAAS_TIMEOUT: "$[[ inputs.timeout_seconds ]]"
+    DAAS_RESPECT_FREEZE: "$[[ inputs.respect_deploy_freeze ]]"
+    DAAS_ENV_URL: "$[[ inputs.environment_url ]]"
+  artifacts:
+    reports:
+      dotenv: deploy.env
+  script:
+    - apk add --no-cache curl jq >/dev/null
+    - |
+      set -eu
+      echo "DAAS_URL=" > deploy.env   # always present for the dotenv report
+
+      if [ -n "${CI_DEPLOY_FREEZE:-}" ] && [ "$DAAS_TIER" = "production" ] \
+         && [ "$DAAS_RESPECT_FREEZE" = "true" ] && [ "$DAAS_DRY_RUN" != "true" ]; then
+        echo "A deploy freeze is active (Settings > CI/CD > Deploy freezes). Not deploying to $DAAS_ENV."
+        exit 1
+      fi
+
+      jq -n \
+        --rawfile spec "$[[ inputs.daas_file ]]" \
+        --arg image "$DAAS_IMAGE" \
+        --arg env "$DAAS_ENV" \
+        --argjson dryRun "$DAAS_DRY_RUN" \
+        '{spec: $spec, image: $image, environment: $env, dryRun: $dryRun}' > payload.json
+
+      auth="Authorization: Bearer $DAAS_ID_TOKEN"
+      resp=$(curl -sS --fail-with-body -X POST "$DAAS_API/v1/deployments" \
+        -H "$auth" -H "Content-Type: application/json" --data @payload.json) \
+        || { echo "DAAS rejected the request:"; echo "$resp" | jq . 2>/dev/null || echo "$resp"; exit 1; }
+
+      # environment link: the input if set, otherwise the app's first public URL (if it has ingress)
+      echo "DAAS_URL=${DAAS_ENV_URL:-$(echo "$resp" | jq -r '.url // empty')}" > deploy.env
+      echo "$resp" | jq -r '(.warnings // [])[] | "warning: \(.)"'
+      echo "$resp" | jq -r '(.skippedTargets // [])[] | "skipped target (no cluster in this stage): \(.)"'
+      echo "$resp" | jq -r '(.urls // [])[] | "url: \(.)"'
+
+      if [ "$DAAS_DRY_RUN" = "true" ]; then
+        echo "$resp" | jq -r '.plan[] | "--- \(.cluster) (wave \(.wave))\n\(.manifests)"'
+        exit 0
+      fi
+
+      id=$(echo "$resp" | jq -r .id)
+      echo "Deployment $id created. Plan:"
+      echo "$resp" | jq -r '.plan[] | "  wave \(.wave): \(.cluster)"'
+
+      deadline=$(( $(date +%s) + DAAS_TIMEOUT ))
+      last=""
+      while [ "$(date +%s)" -lt "$deadline" ]; do
+        st=$(curl -sS --fail -H "$auth" "$DAAS_API/v1/deployments/$id")
+        status=$(echo "$st" | jq -r .status)
+        [ "$status" != "$last" ] && echo "status: $status" && last="$status"
+        case "$status" in
+          succeeded) echo "$st" | jq -r '.clusters[] | "  \(.cluster): \(.status)"'; exit 0 ;;
+          failed)    echo "$st" | jq .; exit 1 ;;
+        esac
+        sleep 10
+      done
+      echo "Timed out waiting for deployment $id"; exit 1

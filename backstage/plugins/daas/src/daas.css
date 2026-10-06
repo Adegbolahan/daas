@@ -1,0 +1,940 @@
+/*
+ * DAAS plugin styles. Built only on Backstage UI (BUI) tokens so it follows the app's theme,
+ * light and dark. Status colors are the design system's; cloud and stage identity are text.
+ */
+
+.daas {
+  --daas-gap: var(--bui-space-6);
+  --daas-card-bg: var(--bui-bg-neutral-1);
+  --daas-rule: var(--bui-border-1);
+  color: var(--bui-fg-primary);
+  font-family: var(--bui-font-regular);
+}
+
+.daas-body {
+  padding: var(--bui-space-6) var(--bui-space-6) var(--bui-space-10);
+  max-width: 1440px;
+}
+
+.daas-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--daas-gap);
+}
+
+.daas-split {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--daas-gap);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .daas-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------------------------------------------------------------- sections, cards, toolbars */
+
+.daas-section {
+  background: var(--daas-card-bg);
+  border: 1px solid var(--daas-rule);
+  border-radius: var(--bui-radius-4);
+  padding: var(--bui-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-4);
+  min-width: 0;
+}
+
+.daas-section__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--bui-space-4);
+}
+
+.daas-section__head p {
+  margin: var(--bui-space-1) 0 0;
+}
+
+.daas-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--bui-space-3);
+}
+
+.daas-toolbar > .bui-SearchField,
+.daas-toolbar > [class*='SearchField'] {
+  min-width: 260px;
+}
+
+.daas-toolbar__select {
+  min-width: 180px;
+}
+
+.daas-titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--bui-space-4);
+  flex-wrap: wrap;
+}
+
+.daas-titlebar h1 {
+  margin: 0 0 var(--bui-space-2);
+}
+
+.daas-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bui-space-2) var(--bui-space-5);
+  font-size: var(--bui-font-size-3);
+  color: var(--bui-fg-secondary);
+}
+
+.daas-inline {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--bui-space-2);
+}
+
+.daas-inline--end {
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.daas-cellstack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.daas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--bui-space-4);
+}
+
+.daas-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-3);
+}
+
+.daas-card {
+  height: 100%;
+}
+
+.daas-card .bui-CardBody,
+.daas-card [class*='CardBody'] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-3);
+}
+
+.daas-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bui-space-2);
+}
+
+.daas-card__row--wrap {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+/* ---------------------------------------------------------------- headline numbers */
+
+.daas-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--bui-space-4);
+}
+
+.daas-stat {
+  background: var(--daas-card-bg);
+  border: 1px solid var(--daas-rule);
+  border-radius: var(--bui-radius-4);
+  padding: var(--bui-space-4) var(--bui-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-1);
+}
+
+.daas-stat__icon {
+  display: inline-flex;
+  color: var(--bui-fg-secondary);
+}
+
+.daas-stat__value {
+  font-size: var(--bui-font-size-8);
+  font-weight: var(--bui-font-weight-bold);
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ---------------------------------------------------------------- badges and pills */
+
+.daas-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 6px;
+  border-radius: var(--bui-radius-full);
+  font-size: var(--bui-font-size-2);
+  font-weight: var(--bui-font-weight-bold);
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.daas-status--success {
+  color: var(--bui-fg-success-on-bg);
+  background: var(--bui-bg-success);
+}
+
+.daas-status--danger {
+  color: var(--bui-fg-danger-on-bg);
+  background: var(--bui-bg-danger);
+}
+
+.daas-status--warning {
+  color: var(--bui-fg-warning-on-bg);
+  background: var(--bui-bg-warning);
+}
+
+.daas-status--info {
+  color: var(--bui-fg-info-on-bg);
+  background: var(--bui-bg-info);
+}
+
+.daas-status--neutral {
+  color: var(--bui-fg-secondary);
+  background: var(--bui-bg-neutral-2);
+}
+
+.daas-spin {
+  animation: daas-spin 1.2s linear infinite;
+}
+
+@keyframes daas-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .daas-spin {
+    animation: none;
+  }
+}
+
+.daas-cloud {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px 1px 6px;
+  border: 1px solid var(--daas-rule);
+  border-radius: var(--bui-radius-2);
+  background: var(--bui-bg-neutral-1);
+  font-size: var(--bui-font-size-2);
+  line-height: 20px;
+  white-space: nowrap;
+  color: var(--bui-fg-primary);
+}
+
+.daas-cloud svg {
+  color: var(--bui-fg-secondary);
+}
+
+.daas-cloud__name {
+  font-weight: var(--bui-font-weight-bold);
+  letter-spacing: 0.02em;
+}
+
+.daas-cloud__region {
+  color: var(--bui-fg-secondary);
+  font-family: var(--bui-font-monospace);
+}
+
+.daas-stage {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 10px;
+  border-radius: var(--bui-radius-full);
+  border: 1px solid var(--bui-border-2);
+  background: var(--bui-bg-neutral-2);
+  font-size: var(--bui-font-size-2);
+  font-weight: var(--bui-font-weight-bold);
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.daas-stage--preview {
+  border-style: dashed;
+  background: transparent;
+}
+
+.daas-tier {
+  display: inline-flex;
+  padding: 0 6px;
+  border-radius: var(--bui-radius-2);
+  background: var(--bui-bg-neutral-2);
+  color: var(--bui-fg-secondary);
+  font-size: var(--bui-font-size-1);
+  line-height: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.daas-mono,
+.daas .daas-mono {
+  font-family: var(--bui-font-monospace);
+  font-size: 0.92em;
+  padding: 0 4px;
+  border-radius: var(--bui-radius-1);
+  background: var(--bui-bg-neutral-2);
+  color: var(--bui-fg-primary);
+  white-space: nowrap;
+}
+
+.daas-gates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-2);
+}
+
+.daas-gate {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--bui-font-size-2);
+  color: var(--bui-fg-secondary);
+}
+
+/* ---------------------------------------------------------------- promotion path */
+
+.daas-pipeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: var(--bui-space-1);
+}
+
+.daas-pipeline__item {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 220px;
+}
+
+.daas-pipeline__arrow {
+  flex: none;
+  color: var(--bui-fg-secondary);
+  margin: 0 var(--bui-space-1);
+}
+
+.daas-stagecard {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-2);
+  padding: var(--bui-space-4);
+  border: 1px solid var(--daas-rule);
+  border-radius: var(--bui-radius-3);
+  background: var(--bui-bg-app);
+}
+
+.daas-stagecard__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--bui-space-2);
+}
+
+.daas-stagecard__envs,
+.daas-stagecard__clusters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-1);
+}
+
+.daas-stagecard__clusters {
+  margin-top: auto;
+}
+
+/* ---------------------------------------------------------------- team matrix */
+
+.daas-matrix {
+  display: flex;
+  flex-direction: column;
+}
+
+.daas-matrix__row {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  gap: var(--bui-space-4);
+  padding: var(--bui-space-3) 0;
+  border-top: 1px solid var(--daas-rule);
+}
+
+.daas-matrix__row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.daas-matrix__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--bui-space-2);
+}
+
+.daas-matrix__clusters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-3);
+}
+
+.daas-cluster {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--bui-space-2) var(--bui-space-3);
+  border: 1px solid var(--daas-rule);
+  border-radius: var(--bui-radius-3);
+  background: var(--bui-bg-app);
+  min-width: 200px;
+}
+
+.daas-cluster .daas-cloud {
+  align-self: flex-start;
+}
+
+.daas-dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--bui-space-3) var(--bui-space-4);
+  margin: 0;
+  font-size: var(--bui-font-size-3);
+}
+
+.daas-dl dt {
+  color: var(--bui-fg-secondary);
+}
+
+.daas-dl dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-2);
+}
+
+/* ---------------------------------------------------------------- tables */
+
+.daas-table-wrap {
+  overflow-x: auto;
+  margin: 0 calc(var(--bui-space-5) * -1);
+}
+
+.daas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--bui-font-size-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.daas-table th {
+  padding: var(--bui-space-2) var(--bui-space-3);
+  color: var(--bui-fg-secondary);
+  font-size: var(--bui-font-size-2);
+  font-weight: var(--bui-font-weight-regular);
+  border-bottom: 1px solid var(--daas-rule);
+  white-space: nowrap;
+}
+
+.daas-table td {
+  padding: var(--bui-space-3);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--daas-rule);
+  vertical-align: middle;
+}
+
+.daas-table th:first-child,
+.daas-table td:first-child {
+  padding-left: var(--bui-space-5);
+}
+
+.daas-table th:last-child,
+.daas-table td:last-child {
+  padding-right: var(--bui-space-5);
+}
+
+.daas-table td.daas-table__wrap {
+  white-space: normal;
+}
+
+.daas-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.daas-table tbody tr:hover td {
+  background: var(--bui-bg-neutral-1-hover);
+}
+
+.daas-table__row--link {
+  cursor: pointer;
+}
+
+.daas-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--bui-space-2);
+  padding: var(--bui-space-8) var(--bui-space-4);
+  border: 1px dashed var(--bui-border-2);
+  border-radius: var(--bui-radius-4);
+}
+
+/* ---------------------------------------------------------------- environments */
+
+.daas-lanes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--bui-space-4);
+}
+
+.daas-lane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-3);
+  padding: var(--bui-space-4);
+  border: 1px solid var(--daas-rule);
+  border-radius: var(--bui-radius-3);
+  background: var(--bui-bg-app);
+}
+
+.daas-lane--preview {
+  border-style: dashed;
+}
+
+.daas-lane__head {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-2);
+}
+
+.daas-lane__spacer {
+  flex: 1;
+}
+
+.daas-lane__image {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bui-space-2);
+  min-width: 0;
+}
+
+.daas-lane__image .daas-mono {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.daas-lane__clusters {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-3);
+}
+
+.daas-lane__clusters li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.daas-host {
+  font-family: var(--bui-font-monospace);
+  padding-left: 2px;
+}
+
+.daas-lane__foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: var(--bui-space-2);
+  border-top: 1px solid var(--daas-rule);
+}
+
+/* ---------------------------------------------------------------- deployments */
+
+.daas-deploys {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--daas-rule);
+  border-radius: var(--bui-radius-4);
+  background: var(--daas-card-bg);
+  overflow: hidden;
+}
+
+.daas-section .daas-deploys {
+  border-radius: var(--bui-radius-3);
+}
+
+.daas-deploy + .daas-deploy {
+  border-top: 1px solid var(--daas-rule);
+}
+
+.daas-deploy__summary {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1.4fr) minmax(0, 1fr) 120px 88px 18px;
+  align-items: center;
+  gap: var(--bui-space-3);
+  padding: var(--bui-space-3) var(--bui-space-4);
+  font-size: var(--bui-font-size-3);
+}
+
+.daas-deploy__summary:hover {
+  background: var(--bui-bg-neutral-1-hover);
+}
+
+.daas-deploy__summary:focus-visible {
+  outline: 2px solid var(--bui-ring);
+  outline-offset: -2px;
+}
+
+.daas-deploy__what {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-2);
+  min-width: 0;
+}
+
+.daas-deploy__image {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.daas-deploy__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-2);
+}
+
+.daas-deploy__when {
+  text-align: right;
+}
+
+.daas-deploy__chevron {
+  color: var(--bui-fg-secondary);
+  transition: transform 0.15s ease;
+}
+
+.daas-deploy--open .daas-deploy__chevron {
+  transform: rotate(180deg);
+}
+
+.daas-deploy__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-3);
+  padding: 0 var(--bui-space-4) var(--bui-space-4) calc(128px + var(--bui-space-4) + var(--bui-space-3));
+}
+
+@media (max-width: 900px) {
+  .daas-deploy__summary {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .daas-deploy__image,
+  .daas-deploy__progress {
+    display: none;
+  }
+  .daas-deploy__detail {
+    padding-left: var(--bui-space-4);
+  }
+}
+
+.daas-progress {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bui-bg-neutral-3);
+  overflow: hidden;
+}
+
+.daas-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--bui-fg-secondary);
+}
+
+.daas-waves {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-2);
+}
+
+.daas-wave {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: var(--bui-space-3);
+  align-items: start;
+  position: relative;
+}
+
+.daas-wave__label {
+  font-size: var(--bui-font-size-2);
+  color: var(--bui-fg-secondary);
+  padding-top: 5px;
+  white-space: nowrap;
+}
+
+.daas-wave__targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-2);
+}
+
+.daas-target {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--bui-space-2);
+  padding: var(--bui-space-1) var(--bui-space-2);
+  border: 1px solid var(--daas-rule);
+  border-radius: var(--bui-radius-3);
+  background: var(--bui-bg-app);
+}
+
+/* ---------------------------------------------------------------- code */
+
+.daas-code {
+  margin: 0;
+  padding: var(--bui-space-3) 0;
+  overflow: auto;
+  border-radius: var(--bui-radius-3);
+  border: 1px solid var(--daas-rule);
+  background: var(--bui-bg-app);
+  font-family: var(--bui-font-monospace);
+  font-size: var(--bui-font-size-2);
+  line-height: 1.6;
+  counter-reset: line;
+}
+
+.daas-code__ln {
+  display: inline-block;
+  width: 3.5em;
+  padding-right: 1em;
+  text-align: right;
+  color: var(--bui-fg-disabled);
+  user-select: none;
+}
+
+.daas-code__key {
+  color: var(--bui-fg-info);
+}
+
+.daas-code__comment {
+  color: var(--bui-fg-secondary);
+  font-style: italic;
+}
+
+.daas-code__num {
+  color: var(--bui-fg-warning);
+}
+
+.daas-code__str,
+.daas-code__val {
+  color: var(--bui-fg-success);
+}
+
+.daas-segments {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 2px;
+  margin-bottom: var(--bui-space-2);
+  border-radius: var(--bui-radius-3);
+  background: var(--bui-bg-neutral-2);
+}
+
+.daas-segment {
+  all: unset;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: var(--bui-radius-2);
+  font-size: var(--bui-font-size-2);
+  color: var(--bui-fg-secondary);
+}
+
+.daas-segment.is-on {
+  background: var(--bui-bg-app);
+  color: var(--bui-fg-primary);
+  box-shadow: var(--bui-shadow);
+}
+
+.daas-segment:focus-visible {
+  outline: 2px solid var(--bui-ring);
+}
+
+/* ---------------------------------------------------------------- scaffolder fields */
+
+.daas-field {
+  border: 0;
+  padding: 0;
+  margin: 0 0 var(--bui-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-2);
+  min-width: 0;
+}
+
+.daas-field__label {
+  padding: 0;
+  margin-bottom: var(--bui-space-1);
+  font-size: var(--bui-font-size-3);
+  font-weight: var(--bui-font-weight-bold);
+}
+
+.daas-field p {
+  margin: 0;
+}
+
+.daas-kv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-2);
+}
+
+.daas-kv__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto;
+  gap: var(--bui-space-2);
+  align-items: start;
+}
+
+.daas-targets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--bui-space-2);
+}
+
+.daas-target-opt {
+  padding: var(--bui-space-2) var(--bui-space-3);
+  border: 1px solid var(--daas-rule);
+  border-radius: var(--bui-radius-3);
+  background: var(--bui-bg-app);
+}
+
+.daas-target-opt.is-on {
+  border-color: var(--bui-fg-primary);
+}
+
+.daas-target-opt__body {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.daas-order {
+  list-style: none;
+  margin: var(--bui-space-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-1);
+}
+
+.daas-order li {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-2);
+  padding: var(--bui-space-1) var(--bui-space-2);
+  border-radius: var(--bui-radius-2);
+  background: var(--bui-bg-neutral-1);
+}
+
+.daas-order__n {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bui-bg-neutral-3);
+  font-size: var(--bui-font-size-1);
+  font-weight: var(--bui-font-weight-bold);
+}
+
+.daas-order__spacer {
+  flex: 1;
+}
+
+.daas-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-3);
+}
+
+.daas-preview h4 {
+  margin: 0 0 var(--bui-space-2);
+}
+
+.daas-bullets {
+  margin: var(--bui-space-1) 0 0;
+  padding-left: 1.2em;
+}
+
+.daas-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-4);
+}
+
+.daas-deploy__summary > .daas-status {
+  justify-self: start;
+}
+
+/* ---------------------------------------------------------------- my teams / all teams */
+
+.daas-scopebar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--bui-space-4);
+}
+
+.daas-scopebar:empty {
+  display: none;
+}
+
+.daas-scope {
+  margin-bottom: 0;
+}

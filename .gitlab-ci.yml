@@ -1,0 +1,56 @@
+# DAAS's own pipeline. The platform/ folder (platform files + one folder per team) drives everything.
+# A change to it runs tests (incl. generated team READMEs/CODEOWNERS being current), a Terraform plan
+# for every stage on the MR, and ordered applies on the default branch.
+stages: [test, generate, terraform]
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+api-test:
+  stage: test
+  image: python:3.12-slim
+  script:
+    - apt-get update -qq && apt-get install -y -qq git >/dev/null
+    - cd api && pip install -q -r requirements-dev.txt
+    - pytest -q
+  rules:
+    - changes: [api/**/*, platform/**/*, spec/**/*, .gitlab/CODEOWNERS]
+
+terraform-generate:
+  stage: generate
+  image: python:3.12-alpine
+  script:
+    - pip install -q pyyaml
+    - python terraform/daas_tf.py pipeline > terraform-pipeline.yml
+    - python terraform/daas_tf.py config
+    - cat terraform-pipeline.yml
+  artifacts:
+    paths: [terraform-pipeline.yml, terraform/live/_config.tf.json]
+    expire_in: 1 week
+  rules:
+    - changes: [platform/**/*, terraform/**/*]
+
+# Static checks without any cloud access: formatting and `terraform validate` of the module + root.
+terraform-validate:
+  stage: terraform
+  needs: [terraform-generate]
+  image: { name: hashicorp/terraform:1.9, entrypoint: [""] }
+  script:
+    - cd terraform/live
+    - terraform init -backend=false -input=false   # providers only; no state or cloud credentials needed
+    - terraform validate
+  rules:
+    - changes: [platform/**/*, terraform/**/*]
+
+terraform:
+  stage: terraform
+  needs: [terraform-generate]
+  trigger:
+    include:
+      - artifact: terraform-pipeline.yml
+        job: terraform-generate
+    strategy: depend
+  rules:
+    - changes: [platform/**/*, terraform/**/*]

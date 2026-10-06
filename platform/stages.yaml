@@ -1,0 +1,50 @@
+# Stages: isolated environments, each with its own secrets project/account and Terraform state.
+# Teams run dedicated clusters per stage (teams/<team>/clusters.yaml). Platform-owned.
+# Add as many as you need; each top-level key is a stage, in apply order.
+#   gitlabTier:   GitLab deployment tier (production|staging|testing|development|other). Several stages
+#                 can share one; jobs must declare it, and group-level protected environments key on it.
+#   environments: GitLab environment names routed to this stage (globs; first matching stage wins).
+#                 Default: [<stage name>].
+#   preview:      this stage hosts per-MR previews (at most one stage)
+#   autoApply:    Terraform applies on main without a manual click (default true)
+#   partialTargets: deploy to the app's targets that have a cluster here and skip the rest, and deploy
+#                 without a public route where a cluster has no gateway (default false: strict, as in production)
+#   allowStop:    GitLab "stop environment" may delete apps here via DAAS (always on for the preview stage;
+#                 default false so stopping `production` in GitLab can't delete production)
+preview:
+  gitlabTier: development
+  environments: ["review/*"]
+  preview: true
+  gcp: { project: acme-secrets-preview, projectNumber: "100000000003" }
+  aws: { account: "333333333333", region: us-east-1 }
+qa:
+  partialTargets: true
+  gitlabTier: testing
+  environments: ["qa", "qa-*"]
+  gcp: { project: acme-secrets-qa, projectNumber: "100000000004" }
+  aws: { account: "444444444444", region: us-east-1 }
+uat:
+  partialTargets: true
+  gitlabTier: testing
+  gcp: { project: acme-secrets-uat, projectNumber: "100000000005" }
+  aws: { account: "555555555555", region: us-east-1 }
+perf:
+  partialTargets: true
+  gitlabTier: testing
+  gcp: { project: acme-secrets-perf, projectNumber: "100000000006" }
+  aws: { account: "666666666666", region: us-east-1 }
+staging:
+  partialTargets: true
+  gitlabTier: staging
+  gcp: { project: acme-secrets-stg, projectNumber: "100000000002" }
+  aws: { account: "222222222222", region: us-east-1 }
+production:
+  gitlabTier: production
+  environments: ["production", "production-*"]
+  autoApply: false
+  gcp: { project: acme-secrets-prod, projectNumber: "100000000001" }
+  aws:
+    account: "111111111111"
+    region: us-east-1
+    # existingOidcProviders:             # reuse IAM OIDC providers that already exist here
+    #   "https://oidc.eks.us-east-1.amazonaws.com/id/EXAMPLEUSE1PROD": arn:aws:iam::111111111111:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/EXAMPLEUSE1PROD

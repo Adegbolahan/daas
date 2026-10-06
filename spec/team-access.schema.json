@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://daas.example.com/schemas/team-access.v1.json",
+  "title": "access.yaml: who can deploy as a team, where, and under which gates",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["projects", "stages"],
+  "properties": {
+    "namespace": { "type": "string", "pattern": "^[a-z]([-a-z0-9]{0,40}[a-z0-9])?$", "description": "Kubernetes namespace on the team's clusters. Defaults to the team (folder) name." },
+    "group": { "type": "string", "description": "IdP group that gets read-only kubectl on the team's namespaces" },
+    "owners": { "type": "array", "items": { "type": "string", "pattern": "^@" }, "description": "GitLab users/groups who approve changes to this folder (CODEOWNERS)" },
+    "projects": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "GitLab project path globs allowed to deploy as this team, e.g. acme/payments/*" },
+    "stages": {
+      "type": "object",
+      "description": "Stages the team deploys to, with extra gates",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "protectedRefOnly": { "type": "boolean", "description": "Jobs must run on a protected branch or tag" },
+          "requireProtectedEnvironment": { "type": "boolean", "description": "The GitLab environment must be protected (approvals, allowed deployers)" }
+        }
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxConcurrent": { "type": "integer", "minimum": 1, "maximum": 50, "default": 5 },
+        "quota": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "cpu": { "type": "string" }, "memory": { "type": "string" } }
+        }
+      }
+    },
+    "domains": { "type": "array", "items": { "type": "string" }, "description": "Host globs apps may claim with ingress.hosts" },
+    "podSecurity": { "enum": ["restricted", "baseline"], "default": "restricted" },
+    "notify": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "webhookEnv": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$", "description": "Env var on DAAS holding the team's chat webhook URL" } }
+    }
+  }
+}

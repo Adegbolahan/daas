@@ -1,0 +1,31 @@
+apiVersion: daas/v1
+name: payments-api
+port: 8080
+env:
+  LOG_LEVEL: info
+resources: { cpu: 500m, memory: 512Mi }
+health: { liveness: /healthz, readiness: /ready }
+scaling: { min: 2, max: 10, targetCPU: 70 }
+secrets:
+  - DB_URL                       # team default provider (gcp for payments)
+  - { name: STRIPE_KEY, from: aws }
+ingress: {}                      # public at payments-api.<cluster domain>, e.g. payments-api.payments.example.com
+metrics: { path: /metrics }      # scrape annotations; ServiceMonitor + alerts where prometheus-operator runs
+targets:
+  - { provider: gke, region: us-central1 }   # first target = canary
+  - { provider: eks, region: us-east-1 }
+  - { provider: gke, region: europe-west1 }
+rollout: { strategy: sequential }
+
+# Per-stage overrides: env/scaling/resources merge; identity/ingress/targets replace.
+stages:
+  qa:
+    env: { LOG_LEVEL: debug }
+    scaling: { min: 1, max: 2 }
+  staging:
+    scaling: { min: 1, max: 3 }
+  production:
+    identity:                    # the app's own cloud access (IAM bindings live in the team's Terraform)
+      gcpServiceAccount: payments-api@acme-payments-prod.iam.gserviceaccount.com
+      awsRoleArn: arn:aws:iam::111111111111:role/payments-api
+    ingress: { hosts: [pay.example.com, payments-api.payments.example.com] }

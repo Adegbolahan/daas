@@ -1,0 +1,10 @@
+# Access for team "web": who can deploy, where, and under which gates. Settings for all the team's
+# apps; each app's own workload lives in its repo's daas.yaml. Changes need approval from `owners`
+# and the platform team (CODEOWNERS).
+# README.md next to this file is generated: everything this folder gives the team.
+namespace: web
+group: team-web
+owners: ["@acme/web-leads"]
+projects: ["acme/web/*", "acme/storefront"]
+stages:
+  staging: {}

@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://daas.example.com/schemas/daas.v1.json",
+  "title": "daas.yaml: everything the platform needs to deploy an app",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "name",
+    "targets"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "daas/v1"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$",
+      "description": "App name (DNS label). Used for the Deployment, Service, etc."
+    },
+    "image": {
+      "type": "string",
+      "description": "Optional. Omit to use the image built in CI; set it to deploy a prebuilt image."
+    },
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "description": "Container port, exposed in-cluster on :80. Omit for background workers and scheduled jobs."
+    },
+    "schedule": {
+      "type": "string",
+      "pattern": "^(@(hourly|daily|weekly|monthly|yearly)|(\\S+\\s+){4}\\S+)$",
+      "description": "Cron schedule: run as a Kubernetes CronJob instead of a long-running service (no port, health, scaling or ingress)."
+    },
+    "command": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "args": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "env": {
+      "$ref": "#/$defs/env"
+    },
+    "resources": {
+      "$ref": "#/$defs/resources"
+    },
+    "health": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "liveness": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "readiness": {
+          "type": "string",
+          "pattern": "^/"
+        }
+      }
+    },
+    "scaling": {
+      "$ref": "#/$defs/scaling"
+    },
+    "secrets": {
+      "type": "array",
+      "description": "Secrets exposed to the app as env vars. A plain name uses the team's default provider; {name, from} picks gcp or aws explicitly. Values are set with the DAAS secrets API, per tier.",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              },
+              "from": {
+                "enum": [
+                  "gcp",
+                  "aws"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "identity": {
+      "$ref": "#/$defs/identity"
+    },
+    "ingress": {
+      "$ref": "#/$defs/ingress"
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Prometheus metrics: pod scrape annotations, plus ServiceMonitor + alert rules on clusters with the prometheus-operator feature.",
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/",
+          "default": "/metrics"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    },
+    "targets": {
+      "$ref": "#/$defs/targets"
+    },
+    "rollout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "strategy": {
+          "enum": [
+            "parallel",
+            "sequential"
+          ],
+          "default": "sequential",
+          "description": "sequential = one target at a time in listed order (first is the canary); parallel = all at once"
+        }
+      }
+    },
+    "stages": {
+      "type": "object",
+      "description": "Per-stage overrides, keyed by stage name. env/scaling/resources merge over the base; identity/ingress/targets replace it.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "env": {
+            "$ref": "#/$defs/env"
+          },
+          "scaling": {
+            "$ref": "#/$defs/scaling"
+          },
+          "resources": {
+            "$ref": "#/$defs/resources"
+          },
+          "identity": {
+            "$ref": "#/$defs/identity"
+          },
+          "ingress": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/ingress"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null turns public exposure off for this stage"
+          },
+          "targets": {
+            "$ref": "#/$defs/targets"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "env": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean"
+        ]
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cpu": {
+          "type": "string",
+          "default": "250m"
+        },
+        "memory": {
+          "type": "string",
+          "default": "256Mi"
+        }
+      }
+    },
+    "scaling": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "min": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 2
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 4
+        },
+        "targetCPU": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 95,
+          "default": 70
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Cloud identity for the app's own ServiceAccount (the IAM itself lives in the team's Terraform).",
+      "properties": {
+        "gcpServiceAccount": {
+          "type": "string",
+          "pattern": "^[a-z][-a-z0-9]{4,28}[a-z0-9]@[-a-z0-9.]+\\.iam\\.gserviceaccount\\.com$"
+        },
+        "awsRoleArn": {
+          "type": "string",
+          "pattern": "^arn:aws:iam::[0-9]{12}:role/[\\w+=,.@/-]+$"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Expose the app publicly through each cluster's Gateway. hosts default to <app>.<cluster domain>; explicit hosts must match the team's `domains`.",
+      "properties": {
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$"
+          },
+          "uniqueItems": true
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/",
+          "default": "/"
+        }
+      }
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "provider",
+          "region"
+        ],
+        "properties": {
+          "provider": {
+            "enum": [
+              "gke",
+              "eks"
+            ]
+          },
+          "region": {
+            "type": "string",
+            "pattern": "^[a-z]+-[a-z]+-?[0-9]+$"
+          }
+        }
+      }
+    }
+  }
+}

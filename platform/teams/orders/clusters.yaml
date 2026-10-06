@@ -1,0 +1,13 @@
+# orders' dedicated clusters (names start with "orders-").
+- name: orders-gke-usc1-preview
+  stage: preview
+  provider: gke
+  region: us-central1
+  gcpProject: acme-orders-preview
+  previewDomain: orders.preview.example.com
+  gateway: { name: preview-gateway, namespace: gateway }
+- { name: orders-gke-usc1-qa,    stage: qa,         provider: gke, region: us-central1, gcpProject: acme-orders-qa }
+- { name: orders-eks-use1-stage, stage: staging,    provider: eks, region: us-east-1,   oidcIssuer: "https://oidc.eks.us-east-1.amazonaws.com/id/ORDUSE1STG" }
+- { name: orders-gke-usc1-stage, stage: staging,    provider: gke, region: us-central1, gcpProject: acme-orders-stg }
+- { name: orders-eks-use1-prod,  stage: production, provider: eks, region: us-east-1,   oidcIssuer: "https://oidc.eks.us-east-1.amazonaws.com/id/ORDUSE1PROD" }
+- { name: orders-gke-usc1-prod,  stage: production, provider: gke, region: us-central1, gcpProject: acme-orders-prod }

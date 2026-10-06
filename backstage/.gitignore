@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-types/
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+coverage/
+*.tsbuildinfo

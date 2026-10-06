@@ -1,0 +1,32 @@
+{
+  "name": "daas-backstage",
+  "private": true,
+  "description": "Backstage plugins for DAAS: a UI for the platform, and templates generated from the DAAS API schemas",
+  "workspaces": [
+    "plugins/*"
+  ],
+  "engines": {
+    "node": "20 || 22"
+  },
+  "scripts": {
+    "tsc": "tsc",
+    "test": "backstage-cli repo test",
+    "lint": "backstage-cli repo lint",
+    "build": "backstage-cli repo build"
+  },
+  "devDependencies": {
+    "@backstage/cli": "^0.36.6",
+    "@backstage/cli-defaults": "^0.1.6",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^22.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "typescript": "~5.8.0"
+  },
+  "resolutions": {
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "got": "11.8.6"
+  },
+  "packageManager": "yarn@4.9.2"
+}

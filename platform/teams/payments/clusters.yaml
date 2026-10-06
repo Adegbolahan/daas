@@ -1,0 +1,25 @@
+# payments' dedicated clusters. Names must start with "payments-" and match the Argo CD cluster
+# name and the cloud cluster name. GKE needs gcpProject; EKS needs oidcIssuer.
+# The preview-stage cluster can set previewDomain + gateway to give each preview a URL.
+# Other clusters: gateway (Gateway API) + domain enable `ingress` in daas.yaml; the default public host is
+# <app>.<domain> (use the same domain across regions and let DNS route between them).
+# features: add-ons installed on the cluster that DAAS may use (prometheus-operator).
+# monitoringLabels: labels your Prometheus selects ServiceMonitors/PrometheusRules by.
+# ingressAllow: extra sources for the namespace's default-deny NetworkPolicy when the gateway's data plane
+#   isn't a pod in the gateway namespace, e.g. GKE managed Gateway: cidrs [35.191.0.0/16, 130.211.0.0/22].
+- name: payments-gke-usc1-preview
+  stage: preview
+  provider: gke
+  region: us-central1
+  gcpProject: acme-payments-preview
+  previewDomain: payments.preview.example.com   # wildcard DNS -> gateway
+  gateway: { name: preview-gateway, namespace: gateway }
+- { name: payments-gke-usc1-qa,    stage: qa,         provider: gke, region: us-central1,  gcpProject: acme-payments-qa }
+- { name: payments-eks-use1-uat,   stage: uat,        provider: eks, region: us-east-1,    oidcIssuer: "https://oidc.eks.us-east-1.amazonaws.com/id/PAYUSE1UAT" }
+- { name: payments-gke-usc1-perf,  stage: perf,       provider: gke, region: us-central1,  gcpProject: acme-payments-perf }
+- { name: payments-gke-usc1-stage, stage: staging,    provider: gke, region: us-central1,  gcpProject: acme-payments-stg, gateway: { name: public, namespace: gateway }, domain: stg.payments.example.com }
+- { name: payments-eks-use1-stage, stage: staging,    provider: eks, region: us-east-1,    oidcIssuer: "https://oidc.eks.us-east-1.amazonaws.com/id/PAYUSE1STG", gateway: { name: public, namespace: gateway }, domain: stg.payments.example.com }
+- { name: payments-gke-usc1-prod,  stage: production, provider: gke, region: us-central1,  gcpProject: acme-payments-prod, gateway: { name: public, namespace: gateway }, domain: payments.example.com, features: [prometheus-operator], monitoringLabels: { release: kube-prometheus-stack }, ingressAllow: { cidrs: [35.191.0.0/16, 130.211.0.0/22] } }
+- { name: payments-gke-euw1-prod,  stage: production, provider: gke, region: europe-west1, gcpProject: acme-payments-prod, gateway: { name: public, namespace: gateway }, domain: payments.example.com, features: [prometheus-operator], monitoringLabels: { release: kube-prometheus-stack }, ingressAllow: { cidrs: [35.191.0.0/16, 130.211.0.0/22] } }
+- { name: payments-eks-use1-prod,  stage: production, provider: eks, region: us-east-1,    oidcIssuer: "https://oidc.eks.us-east-1.amazonaws.com/id/PAYUSE1PROD", gateway: { name: public, namespace: gateway }, domain: payments.example.com, features: [prometheus-operator], monitoringLabels: { release: kube-prometheus-stack } }
+- { name: payments-eks-euw1-prod,  stage: production, provider: eks, region: eu-west-1,    oidcIssuer: "https://oidc.eks.eu-west-1.amazonaws.com/id/PAYEUW1PROD", gateway: { name: public, namespace: gateway }, domain: payments.example.com, features: [prometheus-operator], monitoringLabels: { release: kube-prometheus-stack } }

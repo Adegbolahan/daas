@@ -1,0 +1,14 @@
+# Naming conventions shared by the DAAS API, rendered manifests and Terraform.
+# Changing one renames resources everywhere. Platform-owned.
+secretKeySeparator: "_"              # remote key: <team>_<app>_<NAME>
+secretsServiceAccount: daas-secrets  # per team namespace; SecretStores authenticate as it
+secretStores: { gcp: daas-gcp, aws: daas-aws }
+gcpReaderPrefix: daas-sec-           # GCP SA per team: daas-sec-<team>@<stage project>
+awsReaderRolePrefix: daas-secrets-   # AWS role per team: daas-secrets-<team>
+awsWriterRole: daas-secrets-writer   # AWS role DAAS assumes to write secrets
+wifPool: daas-k8s                    # GCP workload identity pool for non-GKE clusters
+wifTokenAudience: daas-gcp           # audience of the Kubernetes token exchanged with GCP
+previewNamespaceSuffix: -preview     # payments -> payments-preview
+platformSecretsApp: daas             # reserved app name: <team>_daas_<NAME> holds platform-owned team secrets
+registryPullSecret: daas-registry    # imagePullSecret rendered in every team namespace
+defaultPodSecurity: restricted       # Pod Security Standard for team namespaces (access.yaml podSecurity overrides)

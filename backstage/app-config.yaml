@@ -1,0 +1,10 @@
+# Only for the plugins' dev harnesses (yarn workspace @internal/plugin-daas start).
+app:
+  title: DAAS (dev)
+  baseUrl: http://localhost:3000
+backend:
+  baseUrl: http://localhost:7007
+integrations:
+  gitlab:
+    - host: gitlab.acme.io
+      apiBaseUrl: https://gitlab.acme.io/api/v4
